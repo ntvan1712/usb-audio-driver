@@ -1,0 +1,1 @@
+savedcmd_/home/van/Code/UsbAudioDriver/Module.symvers :=  scripts/mod/modpost -M -m -a      -o /home/van/Code/UsbAudioDriver/Module.symvers -T /home/van/Code/UsbAudioDriver/modules.order -i Module.symvers -e 

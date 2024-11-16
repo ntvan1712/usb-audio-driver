@@ -1,0 +1,1 @@
+savedcmd_/home/van/Code/UsbAudioDriver/src/usb_audio_driver.ko := ld -r -m elf_x86_64 -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o /home/van/Code/UsbAudioDriver/src/usb_audio_driver.ko /home/van/Code/UsbAudioDriver/src/usb_audio_driver.o /home/van/Code/UsbAudioDriver/src/usb_audio_driver.mod.o
