@@ -15,24 +15,13 @@ MODULE_DEVICE_TABLE(usb, usb_audio_id_table);
 static bool _is_main_interface(struct usb_interface *interface)
 {
     unsigned char bClass = interface->cur_altsetting->desc.bInterfaceClass;
-    const char *class_name = NULL;
 
-    switch (bClass)
-    {
-    case USB_AUDIO_CLASS:
-        class_name = "USB_AUDIO_CLASS (Audio)";
-        break;
-    default:
-        class_name = "Unknown class";
-        break;
-    }
+    printk(KERN_INFO "[UsbAudioDriver._is_main_interface] bInterfaceClass: %s, code: %u \n",
+           (bClass == USB_AUDIO_CLASS) ? "USB_AUDIO_CLASS (Audio)" : "Others class", bClass);
 
-    printk(KERN_INFO "[UsbAudioDriver._is_main_interface] bInterfaceClass: %s, code: %u \n", class_name, bClass);
-
-    // return main interface nếu là audio class, vì project là cho loa:)
+    // return true main interface nếu là audio class, vì project là cho loa:)
     return bClass == USB_AUDIO_CLASS;
 }
-
 
 // Hàm xử lý khi thiết bị USB Audio được kết nối
 static int usb_audio_probe(struct usb_interface *interface, const struct usb_device_id *id)
