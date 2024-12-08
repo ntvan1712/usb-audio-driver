@@ -11,5 +11,5 @@
 #endif 
 
 #ifndef KBUILD_MODNAME
-#define KBUILD_MODNAME "usb_audio_driver_"
+#define KBUILD_MODNAME "usb_audio_driver"
 #endif
