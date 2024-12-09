@@ -1,0 +1,1 @@
+savedcmd_/home/van/usb-audio-driver/usb_audio_driver.mod := printf '%s\n'   src/usb_audio_driver.o src/audio_control.o | awk '!x[$$0]++ { print("/home/van/usb-audio-driver/"$$0) }' > /home/van/usb-audio-driver/usb_audio_driver.mod

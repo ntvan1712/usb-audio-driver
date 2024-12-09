@@ -1,0 +1,4 @@
+sudo modprobe -r usb_audio_driver
+sudo cp usb_audio_driver.ko /lib/modules/$(uname -r)/kernel/drivers/
+sudo depmod
+sudo modprobe usb_audio_driver

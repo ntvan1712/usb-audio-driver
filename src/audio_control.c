@@ -12,7 +12,7 @@ static bool enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE_PNP;
 
 static int get_dev_num(void)
 {
-    static int devNum = 1; // Bắt đầu từ 0.
+    static int devNum = 0; // Bắt đầu từ 0.
 
     // Kiểm tra giới hạn trên.
     if (devNum >= SNDRV_CARDS)
@@ -242,8 +242,8 @@ int create_alsa_control(struct snd_card *card)
 static int volume_info(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *uinfo)
 {
     uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
-    uinfo->count = 1; // Mono (hoặc 2 nếu Stereo)
-    uinfo->value.integer.min = 0;  // Giá trị nhỏ nhất
+    uinfo->count = 1;               // Mono (hoặc 2 nếu Stereo)
+    uinfo->value.integer.min = 0;   // Giá trị nhỏ nhất
     uinfo->value.integer.max = 100; // Giá trị lớn nhất
     return 0;
 }
@@ -251,20 +251,20 @@ static int volume_info(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *
 // Hàm tạo ALSA control cho volume
 int create_alsa_volume_control(struct snd_card *card)
 {
-    // struct snd_kcontrol_new control_new = {
-    //     .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-    //     .name = "Master Volume",
-    //     .access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
-    //     .info = volume_info,
-    //     .get = get_alsa_volume,
-    //     .put = set_alsa_volume,
-    // };
-
-    struct snd_kcontrol control = {
+    struct snd_kcontrol_new control_new = {
+        .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+        .name = "Master Volume",
+        .access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
         .info = volume_info,
         .get = get_alsa_volume,
         .put = set_alsa_volume,
     };
+
+    // struct snd_kcontrol control = {
+    //   .info = volume_info,
+    //.get = get_alsa_volume,
+    //.put = set_alsa_volume,
+    //};
 
     int *volume = kzalloc(sizeof(int), GFP_KERNEL);
     if (!volume)
@@ -274,16 +274,23 @@ int create_alsa_volume_control(struct snd_card *card)
     }
 
     *volume = 50; // Giá trị mặc định
-    // struct snd_kcontrol *control = snd_ctl_new1(&control_new, volume);
+    struct snd_kcontrol *control = snd_ctl_new1(&control_new, volume);
 
-    // if (!control)
-    // {
-    //     kfree(volume);
-    //     printk(KERN_ERR "[AudioControl.create_alsa_volume_control] Failed to create control\n");
-    //     return -ENOMEM;
-    // }
+    if (!control)
+    {
+        kfree(volume);
+        printk(KERN_ERR "[AudioControl.create_alsa_volume_control] Failed to create control\n");
+        return -ENOMEM;
+    }
 
-    return snd_ctl_add(card, &control);
+    int ret = snd_ctl_add(card, control);
+    if (ret < 0)
+    {
+        kfree(volume); // Giải phóng bộ nhớ nếu thất bại
+        printk(KERN_ERR "[AudioControl.create_alsa_volume_control] Failed to add control\n");
+        return ret;
+    }
+    return 0; // Thành công
 }
 
 // Hàm tạo ALSA control cho mute
