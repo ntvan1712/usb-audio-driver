@@ -14,6 +14,7 @@ static struct usb_device_id usb_audio_id_table[] = {
     {USB_DEVICE(USB_AUDIO_VID, USB_AUDIO_PID)},
     {},
 };
+
 MODULE_DEVICE_TABLE(usb, usb_audio_id_table);
 
 // Khởi tạo ALSA card
@@ -52,6 +53,7 @@ static struct snd_card *init_snd_card_from_usb_device(struct usb_device *dev)
     snd_card_set_id(card, "MyUSBCard");
 
     err = snd_card_register(card);
+
     printk(KERN_INFO "[UsbAudioDriver.init_snd_card_from_usb_device] snd_card_register err: %d \n", err);
 
     if (err < 0)
@@ -66,6 +68,40 @@ static struct snd_card *init_snd_card_from_usb_device(struct usb_device *dev)
     printk(KERN_INFO "[UsbAudioDriver.init_snd_card_from_usb_device] snd_card created successfully\n");
 
     return card; // Trả về card đã được tạo
+}
+
+static int create_snd_device(struct snd_card *card)
+{
+    int err;
+    static struct snd_device_ops ops = {
+        // .dev_free = snd_card_free,
+    };
+
+    err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, card, &ops);
+    if (err < 0)
+    {
+        snd_card_free(card);
+        return err;
+    }
+    printk(KERN_INFO "[UsbAudioDriver.snd_device_create] snd_device_new SNDRV_DEV_LOWLEVEL err: %d \n", err);
+
+    err = snd_device_new(card, SNDRV_DEV_PCM, card, &ops);
+    if (err < 0)
+    {
+        snd_card_free(card);
+        return err;
+    }
+    printk(KERN_INFO "[UsbAudioDriver.snd_device_create] snd_device_new SNDRV_DEV_PCM err: %d \n", err);
+
+    err = snd_device_register(card, card);
+    if (err < 0)
+    {
+        snd_card_free(card);
+        return err;
+    }
+    printk(KERN_INFO "[UsbAudioDriver.snd_device_create] snd_device_register err: %d \n", err);
+
+    return 0;
 }
 
 // Khi USB Audio device được cắm vào
@@ -84,6 +120,13 @@ static int usb_audio_probe(struct usb_interface *interface, const struct usb_dev
 
     printk(KERN_INFO "[UsbAudioDriver.usb_audio_probe] init_snd_card_from_usb_device ALSA Card Info: name=%s, id=%s\n",
            card->shortname, card->id);
+
+    err = create_snd_device(card);
+    if (err < 0)
+    {
+        printk(KERN_ERR "[UsbAudioDriver.usb_audio_probe] Failed to initialize create_snd_device\n");
+        return err;
+    }
 
     interface->dev.driver_data = card; // Lưu trữ card vào driver_data của usb_device
 
@@ -106,7 +149,6 @@ static int usb_audio_probe(struct usb_interface *interface, const struct usb_dev
 
     printk(KERN_INFO "[UsbAudioDriver.usb_audio_probe] USB Audio Device Detected: VID:PID = %04x:%04x \n",
            dev->descriptor.idVendor, dev->descriptor.idProduct);
-    // TODO: Kết nối với hệ thống ALSA để phát âm thanh
 
     return 0;
 }
@@ -114,7 +156,6 @@ static int usb_audio_probe(struct usb_interface *interface, const struct usb_dev
 // Khi USB Audio device bị ngắt kết nối
 static void usb_audio_disconnect(struct usb_interface *interface)
 {
-    // TODO: Dừng phát âm thanh và giải phóng tài nguyên ALSA
     // Giải phóng ALSA card và tài nguyên
     dispose_alsa_control(interface->dev.driver_data);
     printk(KERN_INFO "[UsbAudioDriver.usb_audio_disconnect] USB Audio Device Disconnected\n");

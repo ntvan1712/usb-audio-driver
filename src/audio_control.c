@@ -259,6 +259,7 @@ int create_alsa_volume_control(struct snd_card *card)
         .get = get_alsa_volume,
         .put = set_alsa_volume,
     };
+    
 
     // struct snd_kcontrol control = {
     //   .info = volume_info,
@@ -321,7 +322,14 @@ int create_alsa_mute_control(struct snd_card *card)
         return -ENOMEM;
     }
 
-    return snd_ctl_add(card, control);
+    int ret = snd_ctl_add(card, control);
+    if (ret < 0)
+    {
+        kfree(mute); // Giải phóng bộ nhớ nếu thất bại
+        printk(KERN_ERR "[AudioControl.create_alsa_volume_control] Failed to add control\n");
+        return ret;
+    }
+    return 0; // Thành công
 }
 
 void dispose_alsa_control(struct snd_card *card)
@@ -342,6 +350,7 @@ int set_alsa_volume(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *uc
     int *volume = kcontrol->private_data;
     *volume = ucontrol->value.integer.value[0];
     printk(KERN_INFO "[AudioControl.set_alsa_volume] New volume value: %d\n", *volume);
+
     return 0;
 }
 
