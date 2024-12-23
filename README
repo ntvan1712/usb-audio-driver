@@ -1,4 +1,8 @@
-sudo modprobe -r usb_audio_driver
+// nap driver
+make
 sudo cp usb_audio_driver.ko /lib/modules/$(uname -r)/kernel/drivers/
 sudo depmod
 sudo modprobe usb_audio_driver
+
+// go driver
+sudo modprobe -r usb_audio_driver

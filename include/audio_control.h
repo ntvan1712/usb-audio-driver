@@ -10,9 +10,6 @@
 #define AUDIO_CONTROL_VOLUME 0x01
 #define AUDIO_CONTROL_MUTE 0x02
 
-// #define CARD_INDEX 1
-// #define CARD_ID "UsbAudioDriverCard"
-
 struct my_pcm_device
 {
     struct snd_pcm_substream *substream;
@@ -21,10 +18,9 @@ struct my_pcm_device
     spinlock_t lock;
 };
 
-// int get_dev_num(void);  
-int get_card_index(void);  
-char *get_card_id_str(void);  
-
+// int get_dev_num(void);
+int get_card_index(void);
+char *get_card_id_str(void);
 
 // ** PCM config
 int my_pcm_open(struct snd_pcm_substream *substream);
@@ -59,7 +55,7 @@ int create_alsa_mute_control(struct snd_card *card);
 int create_alsa_control(struct snd_card *card);
 
 // Hàm khi dispose ALSA controls (volume, mute, ... )
-void dispose_alsa_control(struct snd_card *card);
+void dispose_card(struct snd_card *card);
 
 // Hàm để lấy và thay đổi giá trị volume từ ALSA control
 int get_alsa_volume(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol);

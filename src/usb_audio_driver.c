@@ -30,14 +30,6 @@ static struct snd_card *init_snd_card_from_usb_device(struct usb_device *dev)
         return NULL;
     }
 
-    // if (devNum >= SNDRV_CARDS)
-    //     return NULL;
-    // if (!enable[devNum])
-    // {
-    //     devNum++;
-    //     return NULL;
-    // }
-
     // Tạo một card âm thanh mới
     err = snd_card_new(&dev->dev, get_card_index(), get_card_id_str(), THIS_MODULE, 0, &card);
     printk(KERN_INFO "[UsbAudioDriver.init_snd_card_from_usb_device] snd_card_new err: %d \n", err);
@@ -63,19 +55,15 @@ static struct snd_card *init_snd_card_from_usb_device(struct usb_device *dev)
         return NULL;
     }
 
-    // snd_card_info_init();
-
     printk(KERN_INFO "[UsbAudioDriver.init_snd_card_from_usb_device] snd_card created successfully\n");
 
-    return card; // Trả về card đã được tạo
+    return card;
 }
 
 static int create_snd_device(struct snd_card *card)
 {
     int err;
-    static struct snd_device_ops ops = {
-        // .dev_free = snd_card_free,
-    };
+    static struct snd_device_ops ops = {};
 
     err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, card, &ops);
     if (err < 0)
@@ -111,6 +99,9 @@ static int usb_audio_probe(struct usb_interface *interface, const struct usb_dev
     struct snd_card *card;
     int err;
 
+    printk(KERN_INFO "[UsbAudioDriver.usb_audio_probe] USB Audio Device Detected: VID:PID = %04x:%04x \n",
+           dev->descriptor.idVendor, dev->descriptor.idProduct);
+
     // Lấy ALSA card từ thiết bị USB
     card = init_snd_card_from_usb_device(dev);
     if (!card)
@@ -129,7 +120,6 @@ static int usb_audio_probe(struct usb_interface *interface, const struct usb_dev
     }
 
     interface->dev.driver_data = card; // Lưu trữ card vào driver_data của usb_device
-
     usb_set_intfdata(interface, card);
 
     // Khởi tạo các điều khiển ALSA (volume, mute...)
@@ -147,9 +137,6 @@ static int usb_audio_probe(struct usb_interface *interface, const struct usb_dev
         return err;
     }
 
-    printk(KERN_INFO "[UsbAudioDriver.usb_audio_probe] USB Audio Device Detected: VID:PID = %04x:%04x \n",
-           dev->descriptor.idVendor, dev->descriptor.idProduct);
-
     return 0;
 }
 
@@ -157,7 +144,7 @@ static int usb_audio_probe(struct usb_interface *interface, const struct usb_dev
 static void usb_audio_disconnect(struct usb_interface *interface)
 {
     // Giải phóng ALSA card và tài nguyên
-    dispose_alsa_control(interface->dev.driver_data);
+    dispose_card(interface->dev.driver_data);
     printk(KERN_INFO "[UsbAudioDriver.usb_audio_disconnect] USB Audio Device Disconnected\n");
 }
 
