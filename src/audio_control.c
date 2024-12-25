@@ -77,16 +77,16 @@ int my_pcm_open(struct snd_pcm_substream *substream)
     runtime->hw = (struct snd_pcm_hardware){
         .info = SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_BLOCK_TRANSFER,
         .formats = SNDRV_PCM_FMTBIT_S16_LE, // 16-bit signed little endian
-        .rates = SNDRV_PCM_RATE_48000,      // Chỉ hỗ trợ 48kHz
-        .rate_min = 48000,
-        .rate_max = 48000,
+        .rates = SNDRV_PCM_RATE_44100,      // Chỉ hỗ trợ 48kHz
+        .rate_min = 44100,
+        .rate_max = 44100,
         .channels_min = 2, // Stereo
         .channels_max = 2,
-        .buffer_bytes_max = 128 * 1024, // Tối đa 128KB buffer
+        .buffer_bytes_max = 64 * 1024, // Tối đa 128KB buffer
         .period_bytes_min = 1024,
-        .period_bytes_max = 128 * 1024,
-        .periods_min = 2,
-        .periods_max = 16,
+        .period_bytes_max = 32 * 1024,
+        .periods_min = 1,
+        .periods_max = 4,
         .fifo_size = 0,
     };
 
@@ -259,7 +259,6 @@ int create_alsa_volume_control(struct snd_card *card)
         .get = get_alsa_volume,
         .put = set_alsa_volume,
     };
-
     int *volume = kzalloc(sizeof(int), GFP_KERNEL);
     if (!volume)
     {
